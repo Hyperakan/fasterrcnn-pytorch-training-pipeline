@@ -19,6 +19,8 @@ import yaml
 import torchvision
 import time
 import numpy as np
+import json
+from pathlib import Path
 
 torch.multiprocessing.set_sharing_strategy('file_system')
 
@@ -188,6 +190,30 @@ if __name__ == '__main__':
         device=DEVICE,
         classes=CLASSES,
     )
+
+    # Convert stats to JSON-serializable format
+    stats_dict = {
+        'map': float(stats['map']),
+        'mar_100': float(stats['mar_100']),
+        'map_50': float(stats['map_50']),
+        'map_75': float(stats['map_75']),
+        'map_per_class': [float(x) for x in stats['map_per_class']],
+        'mar_100_per_class': [float(x) for x in stats['mar_100_per_class']],
+        'map_small': float(stats['map_small']),
+        'map_medium': float(stats['map_medium']),
+        'map_large': float(stats['map_large'])
+    }
+
+    # Save stats to JSON file
+    output_dir = Path('evaluation_results')
+    output_dir.mkdir(exist_ok=True)
+    
+    with open(output_dir / 'eval_stats.json', 'w') as f:
+        json.dump(stats_dict, f, indent=4)
+    
+    # Save classes to JSON file
+    with open(output_dir / 'classes.json', 'w') as f:
+        json.dump(CLASSES, f, indent=4)
 
     print('\n')
     pprint(stats)
